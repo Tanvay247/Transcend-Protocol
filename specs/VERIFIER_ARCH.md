@@ -23,15 +23,22 @@ event IntentFulfilled(
     address asset,
     uint256 deliveredAmount
 );
+```
 
 ## 2. Public Input Binding
+```
 To prevent proof replay, the ZK circuit must export these as Public Inputs:
 
-* **intentHash**
-* **destinationChainId**
-* **recipient**
-* **asset**
-* **deliveredAmount**
+intentHash
+
+destinationChainId
+
+recipient
+
+asset
+
+deliveredAmount
+```
 
 ## 3. The Separation of Concerns
 The Verifier answers: "Is this proof mathematically valid?"
@@ -42,19 +49,23 @@ Core Binding Logic:
 
 Solidity
 // 1. Verify this proof belongs to THIS intent
+```
 require(proof.intentHash == keccak256(abi.encode(intent)), "ErrIntentMismatch");
+```
 
 // 2. Enforce Economic Constraints (The Judge checks the Fact vs. the Constraint)
+```
 require(proof.recipient == intent.recipient, "ErrWrongRecipient");
 require(proof.asset == intent.outputAsset, "ErrWrongAsset");
 require(proof.deliveredAmount >= intent.minOutputAmount, "ErrMinOutputNotMet");
+```
 
 ## 4. Implementation: Rollup-First
 v1 focuses on L2 Rollups to maintain momentum. We use L1-posted state roots as our "Anchor of Truth," inheriting Ethereum's security with lower proof costs.
 
 ## 5. Verifier Interface (IHeaderVerifier)
 All verifiers must follow this stateless standard:
-
+```
 Solidity
 interface IHeaderVerifier {
     function verifyProof(
@@ -62,3 +73,4 @@ interface IHeaderVerifier {
         bytes calldata proof
     ) external view returns (bool success, bytes memory publicInputs);
 }
+```
