@@ -1,5 +1,4 @@
 # 🛡️ ZK Header Verifier Architecture (Hardened)
-
 This document defines the cryptographic engine of Transcend. It explains how the protocol establishes "Truth" across blockchains without middlemen.
 
 ## 1. The Verification Pipeline
@@ -26,35 +25,25 @@ event IntentFulfilled(
 ```
 
 ## 2. Public Input Binding
-```
 To prevent proof replay, the ZK circuit must export these as Public Inputs:
-
-intentHash
-
-destinationChainId
-
-recipient
-
-asset
-
-deliveredAmount
-```
+* `intentHash`
+* `destinationChainId`
+* `recipient`
+* `asset`
+* `deliveredAmount`
 
 ## 3. The Separation of Concerns
 The Verifier answers: "Is this proof mathematically valid?"
 
 The Core answers: "Does this fact satisfy the user's constraints?"
 
-Core Binding Logic:
+### Core Binding Logic
 
-Solidity
+```solidity
 // 1. Verify this proof belongs to THIS intent
-```
 require(proof.intentHash == keccak256(abi.encode(intent)), "ErrIntentMismatch");
-```
 
-// 2. Enforce Economic Constraints (The Judge checks the Fact vs. the Constraint)
-```
+// 2. Enforce Economic Constraints
 require(proof.recipient == intent.recipient, "ErrWrongRecipient");
 require(proof.asset == intent.outputAsset, "ErrWrongAsset");
 require(proof.deliveredAmount >= intent.minOutputAmount, "ErrMinOutputNotMet");
@@ -65,8 +54,8 @@ v1 focuses on L2 Rollups to maintain momentum. We use L1-posted state roots as o
 
 ## 5. Verifier Interface (IHeaderVerifier)
 All verifiers must follow this stateless standard:
-```
-Solidity
+
+```solidity
 interface IHeaderVerifier {
     function verifyProof(
         uint256 destinationChainId,
