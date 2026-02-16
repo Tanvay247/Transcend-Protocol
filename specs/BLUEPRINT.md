@@ -3,29 +3,31 @@
 This is the technical design for the Transcend smart contracts.
 
 ## 1. The Intent Structure
-This is the "Order Form" the user signs. It must contain these exact pieces of data:
+This is the canonical "Order Form" signed by the user. It must contain these exact fields:
 
 | Field | Description |
 | :--- | :--- |
-| **user** | The wallet address of the person making the request. |
-| **originChainId** | The blockchain where the user's money is starting. |
-| **destinationChainId** | The blockchain where the user wants to receive assets. |
-| **inputAsset** | The money the user is giving (e.g., USDC). |
-| **outputAsset** | The asset the user wants to get (e.g., ETH). |
+| **version** | The protocol version (enables future upgrades). |
+| **user** | The wallet address signing and paying for the intent. |
+| **originChainId** | The blockchain where settlement occurs. |
+| **destinationChainId** | The blockchain where assets must be delivered. |
+| **inputAsset** | The token address the user is giving. |
+| **outputAsset** | The token address the user wants to receive. |
 | **inputAmount** | Exactly how much the user is giving. |
 | **minOutputAmount** | The bare minimum the user is willing to accept. |
-| **maxFee** | The most the user is willing to pay in fees. |
-| **expiry** | The date/time the request becomes invalid. |
-| **nonce** | A unique number to prevent repeating the deal. |
-| **routeHash** | A "fingerprint" of the specific path the Solver must take. |
+| **recipient** | The wallet that receives the final assets. |
+| **maxFee** | The upper bound on protocol fees. |
+| **expiry** | The timestamp when the request becomes invalid. |
+| **nonce** | A unique number to prevent replay attacks. |
+| **routeHash** | A fingerprint of the promised execution path. **Note: The Core enforces hash equality but does not interpret the route contents.** |
 
 ## 2. Core Functions
-* `settle()`: This is the main engine. It checks the signature, checks the proof, and moves the money.
-* `registerHeaderVerifier()`: Plugs in a "Truth Source" for different blockchains.
-* `pause()`: An emergency stop button for the people in charge.
+* `settle()`: Validates signatures, checks proofs, and executes atomic payment.
+* `registerHeaderVerifier()`: Plugs in verified "Truth Sources" for specific chains.
+* `pause()`: Emergency stop for settlement functions.
 
 ## 3. Forbidden Actions
-The code is strictly banned from:
-* Using "hidden" or "random" logic.
-* Storing lists of user history (to keep it fast and cheap).
-* Changing its own rules automatically (Non-upgradeable).
+The code is strictly prohibited from:
+* Using hidden or random logic.
+* Storing user transaction history.
+* Enabling automatic rule upgrades (Non-upgradeable Core).

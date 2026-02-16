@@ -1,30 +1,17 @@
 # ⚖️ The Solver Market Model
 
-This document explains how Transcend stays honest and efficient using money and math.
+This document explains the economic incentives that keep Transcend efficient.
 
-## 1. How the Market Works
-Transcend uses a **First-to-Finish** model. 
-* Solvers see a user's request.
-* They use their own money to buy the assets for the user.
-* They race to be the first one to prove they did it.
-* The winner gets the user's money + a small profit.
+## 1. First-to-Finish Competition
+Transcend uses a competitive model where any whitelisted solver can settle an intent. The first valid settlement mined on the origin chain wins the user's payment.
 
 ## 2. Risk Allocation
-Who loses money when things go wrong?
+* **Solver Risks**: Slippage, bridge failure, gas spikes, and user revocation.
+* **User Benefits**: Guaranteed outcomes or $0 cost.
 
-| Problem | Who Bears the Cost? |
-| :--- | :--- |
-| **Market prices change** | The Solver (takes the risk). |
-| **Bridge or chain fails** | The Solver (capital is stuck/lost). |
-| **User cancels access** | The Solver (must check before acting). |
-| **Smart Contract bug** | The Protocol / User. |
-
-## 3. The Math of Profit
-A Solver only works if they expect to make money.
-The formula they use is:
-$$Profit = (User\_Payment - Flat\_Fee) - Execution\_Costs$$
-
-If the Solver fails to provide the proof, they receive **$0**. This ensures they have a massive incentive to be honest and fast.
+## 3. Solver Profit
+Solvers only act if the expected profit is positive:
+`Profit = (User_Payment - Flat_Fee) - Execution_Costs`
 
 ## 4. Equilibrium
-Over time, only the fastest and cheapest Solvers will stay in the market. This means users get the best possible prices without having to do any manual work.
+Competitive pressure forces solvers to minimize costs and maximize speed, creating an efficient automated market for user intents.
