@@ -6,7 +6,7 @@ import {console} from "forge-std/console.sol";
 import {TranscendCore} from "../src/TranscendCore.sol";
 import {MerkleHeaderVerifierStub} from "../test/mocks/MerkleHeaderVerifierStub.sol";
 
-contract DeployTranscend is Script {
+contract Deploy is Script {
     function run() external {
         // 1. Load configuration
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
