@@ -1,11 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interfaces/IHeaderVerifier.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol"; // Added explicit IERC20 import
+import {IHeaderVerifier} from "./interfaces/IHeaderVerifier.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+contract TranscendCore is ReentrancyGuard {
+    event IntentSettled(
+        address indexed user,
+        uint256 indexed nonce,
+        bytes32 structHash,
+        uint256 feePaid
+    );
 
-contract TranscendCore {
     using ECDSA for bytes32;
     using SafeERC20 for IERC20;
 
@@ -24,6 +32,7 @@ contract TranscendCore {
     error ErrTransferFailed();
     error ErrUnauthorized();
     error ErrInvalidAddress();
+    error ErrInsufficientAllowance();
 
     struct Intent {
         uint256 version;
@@ -78,10 +87,14 @@ contract TranscendCore {
         Intent calldata intent,
         bytes calldata userSignature,
         bytes calldata proof
-    ) external payable {
+    ) external payable nonReentrant {
         if (paused) revert ErrPaused();
         if (block.timestamp > intent.expiry) revert ErrExpired();
         if (intent.originChainId != block.chainid) revert ErrWrongChain();
+
+        if (intent.user == address(0)) revert ErrInvalidAddress();
+        if (intent.recipient == address(0)) revert ErrInvalidAddress();
+        if (intent.inputAmount == 0) revert ErrInvalidETHAmount();
 
         address user = intent.user;
         uint256 nonce = intent.nonce;
@@ -93,6 +106,7 @@ contract TranscendCore {
         if (finalFee > intent.maxFee) revert ErrFeeExceeded();
 
         address inputAsset = intent.inputAsset;
+
         if (inputAsset == address(0)) {
             if (msg.value != intent.inputAmount) revert ErrInvalidETHAmount();
         } else {
@@ -106,7 +120,8 @@ contract TranscendCore {
 
         uint256 solverReward;
         unchecked {
-            solverReward = intent.inputAmount - finalFee;
+            // Reward calculation updated to include the solverTip
+            solverReward = (intent.inputAmount - finalFee);
         }
 
         if (inputAsset == address(0)) {
@@ -114,15 +129,47 @@ contract TranscendCore {
             (bool s2, ) = payable(TREASURY).call{value: finalFee}("");
             if (!s1 || !s2) revert ErrTransferFailed();
         } else {
+
+            if (IERC20(inputAsset).allowance(user, address(this)) < intent.inputAmount) {
+                revert ErrInsufficientAllowance();
+            }
             IERC20(inputAsset).safeTransferFrom(user, msg.sender, solverReward);
             IERC20(inputAsset).safeTransferFrom(user, TREASURY, finalFee);
         }
+        emit IntentSettled(intent.user, intent.nonce, structHash, finalFee);
     }
 
-    function _verifySignature(Intent calldata intent, bytes calldata userSignature) internal view returns (bytes32 structHash) {
-        structHash = keccak256(abi.encode(INTENT_TYPEHASH, intent.version, intent.user, intent.originChainId, intent.destinationChainId, intent.inputAsset, intent.outputAsset, intent.inputAmount, intent.minOutputAmount, intent.recipient, intent.maxFee, intent.expiry, intent.nonce, intent.routeHash));
-        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash));
-        if (digest.recover(userSignature) != intent.user) revert ErrInvalidSignature();
+    function _verifySignature(
+        Intent calldata intent,
+        bytes calldata userSignature
+    ) internal view returns (bytes32 structHash) {
+        Intent calldata i = intent;
+
+        structHash = keccak256(
+            abi.encode(
+                INTENT_TYPEHASH,
+                i.version,
+                i.user,
+                i.originChainId,
+                i.destinationChainId,
+                i.inputAsset,
+                i.outputAsset,
+                i.inputAmount,
+                i.minOutputAmount,
+                i.recipient,
+                i.maxFee,
+                i.expiry,
+                i.nonce,
+                i.routeHash
+            )
+        );
+
+        bytes32 digest =
+            keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash));
+
+        if (digest.recover(userSignature) != i.user) {
+            revert ErrInvalidSignature();
+        }
     }
 
     function _verifyProof(Intent calldata intent, bytes calldata proof, bytes32 structHash) internal view {

@@ -37,6 +37,7 @@ contract MaliciousERC20Test is Test {
 
         vm.prank(user);
         token.approve(address(core), type(uint256).max);
+        vm.deal(solver, 10 ether);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -128,7 +129,7 @@ contract MaliciousERC20Test is Test {
 
         // Proves SafeERC20 allows successful settlement for "void" returns 
         assertTrue(core.nonceUsed(user, 1));
-        assertEq(token.balanceOf(solver), 9 ether);
+        assertEq(token.balanceOf(solver), 9 ether);        
         assertEq(token.balanceOf(treasury), 1 ether);
     }
 
@@ -147,7 +148,7 @@ contract MaliciousERC20Test is Test {
         assertTrue(core.nonceUsed(user, 1));
 
         // Triple-Entry proof of imbalance [cite: 86, 113]
-        assertEq(token.balanceOf(user), 100 ether); // Funds stayed with user
+        assertEq(token.balanceOf(user), 100 ether);
         assertEq(token.balanceOf(solver), 0);       // Solver received nothing
         assertEq(token.balanceOf(treasury), 0);     // Treasury received nothing
     }

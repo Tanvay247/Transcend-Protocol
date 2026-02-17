@@ -23,10 +23,12 @@ contract ReentrantERC20 {
     TranscendCore.Intent public storedIntent;
     bytes public storedSignature;
     bytes public storedProof;
+    receive() external payable {}
 
     constructor(TranscendCore _core) {
         core = _core;
     }
+    
 
     /*//////////////////////////////////////////////////////////////
                                 ADMIN

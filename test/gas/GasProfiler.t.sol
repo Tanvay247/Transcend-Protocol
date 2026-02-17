@@ -209,6 +209,6 @@ contract GasProfiler is Test {
         bytes memory proofData = _proof(structHash, intent.recipient, intent.outputAsset);
 
         vm.prank(solver);
-        core.settle{value: 10 ether}(intent, signature, proofData);
+        core.settle{value: intent.inputAmount}(intent, signature, proofData);
     }
 }

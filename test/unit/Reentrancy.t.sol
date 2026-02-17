@@ -11,6 +11,7 @@ import "../mocks/ReentrantERC20.sol";
  * @notice Final verification of CEI protection and Nonce Lock integrity.
  */
 contract ReentrancyTest is Test {
+    error ReentrancyGuardReentrantCall();
     TranscendCore core;
     MockHeaderVerifier verifier;
     ReentrantERC20 token;
@@ -37,6 +38,7 @@ contract ReentrancyTest is Test {
 
         vm.prank(user);
         token.approve(address(core), type(uint256).max);
+        vm.deal(solver, 10 ether);
     }
 
     function test_ReplayReentrancyFails() public {
@@ -82,6 +84,8 @@ contract ReentrancyTest is Test {
 
         bytes memory proof = abi.encode(structHash, user, intent.outputAsset, 6 ether);
 
+        vm.deal(address(token), 1 ether);
+
         // Configure the harness to attack during the transferFrom interaction
         token.configureAttack(true, intent, signature, proof);
 
@@ -94,7 +98,7 @@ contract ReentrancyTest is Test {
         // 2. Confirm the reentrant call failed specifically with the Nonce error 
         assertEq(
             token.lastErrorSelector(),
-            TranscendCore.ErrNonceUsed.selector
+            ReentrancyGuardReentrantCall.selector
         );
     }
 }

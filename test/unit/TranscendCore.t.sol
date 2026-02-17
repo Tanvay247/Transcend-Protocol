@@ -33,6 +33,7 @@ contract TranscendCoreTest is Test {
         token.mint(user, 1000000 ether);
         vm.prank(user);
         token.approve(address(core), type(uint256).max);
+        vm.deal(solver, 10 ether);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -104,8 +105,15 @@ contract TranscendCoreTest is Test {
         uint256 dynamicFee = (amount * BPS_FEE) / 10000;
         uint256 expectedFee = dynamicFee > FLAT_FEE ? dynamicFee : FLAT_FEE;
 
-        assertEq(token.balanceOf(user), userStart - amount);
-        assertEq(token.balanceOf(solver), solverStart + (amount - expectedFee));
+        assertEq(
+            token.balanceOf(user),
+            userStart - amount
+        );
+
+        assertEq(
+            token.balanceOf(solver),
+            solverStart + (amount - expectedFee)
+        );
         assertEq(token.balanceOf(treasury), treasuryStart + expectedFee);
         assertTrue(core.nonceUsed(user, 1));
     }
