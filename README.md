@@ -1,19 +1,66 @@
-# 🌍 Transcend Protocol
+## Foundry
 
-### "Tell us WHAT you want to happen. We handle HOW it happens."
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-Transcend is a system built to make digital actions (like moving or swapping money across blockchains) safe, automatic, and simple. 
+Foundry consists of:
 
-Today, doing anything on a blockchain is too hard. You have to pick the right app, the right chain, and hope nothing fails halfway. Transcend changes this by using **Intent-Based Execution.**
+- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## 🧩 The Core Idea
-1. **User Intent:** You sign a simple message saying: "I want to swap 100 USDC on Ethereum for at least 0.04 ETH on Base."
-2. **Solver Competition:** Professional "Solvers" look at your request and compete to do the work for you.
-3. **Safe Settlement:** The Transcend system only pays the Solver **after** it proves the ETH arrived in your wallet. If it doesn't arrive, you keep your money.
+## Documentation
 
-## 📁 Repository Structure
-* **/specs/CONSTITUTION.md**: The unbreakable rules of the system.
-* **/specs/BLUEPRINT.md**: The technical skeleton and code rules.
-* **/specs/MARKET_MODEL.md**: How the money flows and why it stays honest.
+https://book.getfoundry.sh/
 
----
+## Usage
+
+### Build
+
+```shell
+$ forge build
+```
+
+### Test
+
+```shell
+$ forge test
+```
+
+### Format
+
+```shell
+$ forge fmt
+```
+
+### Gas Snapshots
+
+```shell
+$ forge snapshot
+```
+
+### Anvil
+
+```shell
+$ anvil
+```
+
+### Deploy
+
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
